@@ -551,12 +551,35 @@
         document.onmouseup = handleMouseUp;
         document.onmousemove = handleMouseMove;
 
-        var el = document.getElementsByTagName("canvas")[0];
-		el.addEventListener("touchstart", handleMouseDown, false);
-		el.addEventListener("touchend", handleMouseUp, false);
-	    el.addEventListener("touchcancel", handleMouseUp, false);
-		el.addEventListener("touchleave", handleMouseUp, false);
-		el.addEventListener("touchmove", handleMouseMove, false);
+        canvas.addEventListener("touchstart", function(e){
+        	e.preventDefault(); 
+        	mouseDown = true;
+	        lastMouseX = e.changedTouches[0].clientX;
+    	    lastMouseY = e.changedTouches[0].clientY;
+        }, false);
+		canvas.addEventListener("touchend", function(e){
+			mouseDown = false;
+		}, false);
+		canvas.addEventListener("touchmove", function(e){
+			if (!mouseDown) {
+            	return;
+	        }
+	        var newX = e.changedTouches[0].clientX;
+	        var newY = e.changedTouches[0].clientY;
+
+	        var deltaX = newX - lastMouseX
+	        var newRotationMatrix = mat4.create();
+	        mat4.identity(newRotationMatrix);
+	        mat4.rotate(newRotationMatrix, degToRad(deltaX / 10), [0, 1, 0]);
+
+	        var deltaY = newY - lastMouseY;
+	        mat4.rotate(newRotationMatrix, degToRad(deltaY / 10), [1, 0, 0]);
+
+	        mat4.multiply(newRotationMatrix, moonRotationMatrix, moonRotationMatrix);
+
+	        lastMouseX = newX
+	        lastMouseY = newY;
+		}, false);
 
         tick();
 
