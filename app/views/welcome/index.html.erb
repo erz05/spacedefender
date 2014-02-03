@@ -551,6 +551,13 @@
         document.onmouseup = handleMouseUp;
         document.onmousemove = handleMouseMove;
 
+        var el = document.getElementsByTagName("canvas")[0];
+		el.addEventListener("touchstart", handleMouseDown, false);
+		el.addEventListener("touchend", handleMouseUp, false);
+	    el.addEventListener("touchcancel", handleMouseUp, false);
+		el.addEventListener("touchleave", handleMouseUp, false);
+		el.addEventListener("touchmove", handleMouseMove, false);
+
         tick();
 
         window.addEventListener('resize', resizeCanvas);
