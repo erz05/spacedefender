@@ -614,6 +614,10 @@
         tick();
 
         window.addEventListener('resize', resizeCanvas);
+
+        $("#drawerButton").click(function(){
+        	$("#drawer").toggle();
+        });
     }
 
 
@@ -633,21 +637,75 @@
 </script>
 
 <style>
-      body, html { 
-        width: 100%;
+    body, html { 
+    	width: 100%;
         height: 100%;
         border: 0px;
         padding: 0px;
-        margin: 0px;
-      }
-      #canvas {
+    	margin: 0px;
+    }
+
+    #canvas {
         width: 100%;
         height: 100%;
-      }
+    }
+      
+    #container {
+    	width: 100%;
+    	height: 100%;
+    	position: relative;
+	}
+
+	#navi, 
+	#drawer,
+	#drawerButton {
+	    position: absolute;
+	    top: 0;
+	    left: 0;
+	}
+
+	#navi {
+		width: 100%;
+	    height: 100%;
+	}
+
+	#drawer {
+		background-color:#333333;
+		opacity:0.6;
+	    filter:alpha(opacity=60);
+		width: 200px;
+	    height: 100%;
+	    z-index: 10;
+	    border: 5px groove #0066FF;
+	}
+
+	#drawerButton {
+		z-index: 10;
+		-moz-user-select: none; 
+		-webkit-user-select: none; 
+		-ms-user-select:none; 
+		user-select:none;
+	}
+
+	#score {
+		font-family:"Times New Roman",Georgia,Serif;
+		color: white;
+		padding: 10px;
+		-moz-user-select: none; 
+		-webkit-user-select: none; 
+		-ms-user-select:none; 
+		user-select:none;
+	}
 </style>
 
 </head>
     <body onload="webGLStart();">
-        <canvas id="canvas"></canvas>
+    	<div id="container">
+		    <div id="navi"><canvas id="canvas"></canvas></div>
+		    <div id="drawer">
+		    	<h2 id="score">Score: 99999</h2>
+		    </div>
+		    <button id="drawerButton">Controls</button>
+		</div>
     </body>
 </html>
