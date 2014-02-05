@@ -219,8 +219,8 @@
         lastMouseY = newY;
     }
 
-    var circles = [];
     var sizes =[.5, .05, .1, .09, .08, .3, .2, .1, .1, .05];
+    var radiuses =[1, 2, 3, 4, 5, 6, 7, 8, 9];
     var c1 = [1, .7, .3, 0, 1, 1, .5, 1, 0, 0];
     var c2 = [1, .2, .5, .7, 0, 0.64705882352, 0, 0, 0, 1];
     var c3 = [0, 0, .3, 1, 0, 0, .8, 1, 1, 1];
@@ -300,9 +300,12 @@
         return new sphere(vertexPositionBuffer, vertexIndexBuffer, vertexColorBuffer);
     }
 
-    function initCircle(radius) {
-        var circleBuffer;
+    function initCircle(i) {
+    	var radius = radiuses[i];
+        var vertexPositionBuffer;
+        var vertexColorBuffer;
         var positionData = [];
+        var colors = [];
         var numSegments = 100;
         for(var i=0; i<numSegments; i++){
             var theta = 2.0 * 3.1415926 * i / numSegments;
@@ -313,16 +316,25 @@
             positionData.push(x);
             positionData.push(y);
             positionData.push(z);
+            colors.push(.2);
+            colors.push(.2);
+            colors.push(.2);
+            colors.push(1);
         }
         
-        circleBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, circleBuffer);
+        vertexPositionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positionData), gl.STATIC_DRAW);
-        circleBuffer.itemSize = 3;
-        circleBuffer.numItems = positionData.length/3;
+        vertexPositionBuffer.itemSize = 3;
+        vertexPositionBuffer.numItems = positionData.length/3;
 
+        vertexColorBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexColorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+        vertexColorBuffer.itemSize = 4;
+        vertexColorBuffer.numItems = colors.length / 4;
 
-        circles.push(circleBuffer);
+        return new circle(vertexPositionBuffer, vertexColorBuffer);
     }
 
     var starPositionBuffer;
@@ -352,32 +364,17 @@
         starColorBuffer.numItems = colors.length / 4;
     }
 
+    var orbits = [];
     var planets = [];
-    var circleColorBuffer;
+    var moons = [];
     function initBuffers() {
-        var radiuses =[1, 2, 3, 4, 5, 6, 7, 8, 9];
         for(var i=0; i<9; i++){
-            initCircle(radiuses[i]);
+            orbits.push(initCircle(i));
         }
 
         for(var i=0; i<10; i++){
             planets.push(initSphere(i));
         }
-
-        var circleColors = [];
-        var numSegments = 100;
-        for(var i=0; i<numSegments; i++){
-            circleColors.push(.2);
-            circleColors.push(.2);
-            circleColors.push(.2);
-            circleColors.push(1);
-        }
-
-        circleColorBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, circleColorBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(circleColors), gl.STATIC_DRAW);
-        circleColorBuffer.itemSize = 4;
-        circleColorBuffer.numItems = circleColors.length / 4;
 
         initStars();
     }
@@ -414,17 +411,19 @@
         mvPopMatrix();
     }
 
-    function drawCircle(i) {  
-        var circleBuffer = circles[i];
+    function drawCircle(i) {
+    	var orbit = orbits[i];
+        var vertexPositionBuffer = orbit.vertexPositionBuffer;
+        var vertexColorBuffer = orbit.vertexColorBuffer;
         mvPushMatrix();
-        gl.bindBuffer(gl.ARRAY_BUFFER, circleBuffer);
-        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, circleBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, circleColorBuffer);
-        gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, circleColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexColorBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, vertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
         setMatrixUniforms();
-        gl.drawArrays(gl.LINE_STRIP, 0, circleBuffer.numItems);
+        gl.drawArrays(gl.LINE_STRIP, 0, vertexPositionBuffer.numItems);
         mvPopMatrix();
     }
 
@@ -622,6 +621,11 @@
     function sphere(vertexPositionBuffer, vertexIndexBuffer, vertexColorBuffer){
     	this.vertexPositionBuffer = vertexPositionBuffer;
         this.vertexIndexBuffer = vertexIndexBuffer;
+        this.vertexColorBuffer = vertexColorBuffer;
+    }
+
+    function circle(vertexPositionBuffer, vertexColorBuffer){
+    	this.vertexPositionBuffer = vertexPositionBuffer;
         this.vertexColorBuffer = vertexColorBuffer;
     }
     //End of Objects=======================================
