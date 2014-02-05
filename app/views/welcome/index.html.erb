@@ -219,9 +219,6 @@
         lastMouseY = newY;
     }
 
-    var spherePosition = [];
-    var sphereIndex = [];
-    var sphereColor = [];
     var circles = [];
     var sizes =[.5, .05, .1, .09, .08, .3, .2, .1, .1, .05];
     var c1 = [1, .7, .3, 0, 1, 1, .5, 1, 0, 0];
@@ -300,9 +297,7 @@
         vertexIndexBuffer.itemSize = 1;
         vertexIndexBuffer.numItems = indexData.length;
 
-        spherePosition.push(vertexPositionBuffer);
-        sphereIndex.push(vertexIndexBuffer);
-        sphereColor.push(vertexColorBuffer);
+        return new sphere(vertexPositionBuffer, vertexIndexBuffer, vertexColorBuffer);
     }
 
     function initCircle(radius) {
@@ -357,6 +352,7 @@
         starColorBuffer.numItems = colors.length / 4;
     }
 
+    var planets = [];
     var circleColorBuffer;
     function initBuffers() {
         var radiuses =[1, 2, 3, 4, 5, 6, 7, 8, 9];
@@ -365,7 +361,7 @@
         }
 
         for(var i=0; i<10; i++){
-            initSphere(i);
+            planets.push(initSphere(i));
         }
 
         var circleColors = [];
@@ -402,9 +398,10 @@
         mvPushMatrix();
         mat4.rotate(mvMatrix, degToRad(rAngle/rotationSpeeed[i]), [0,1,0]);
         mat4.translate(mvMatrix, [locations[i], 0.0, 0.0]);
-        var vertexPositionBuffer = spherePosition[i];
-        var vertexIndexBuffer = sphereIndex[i];
-        var vertexColorBuffer = sphereColor[i];
+        var planet = planets[i];
+        var vertexPositionBuffer = planet.vertexPositionBuffer;
+        var vertexIndexBuffer = planet.vertexIndexBuffer;
+        var vertexColorBuffer = planet.vertexColorBuffer;
         gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
         gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
@@ -620,6 +617,14 @@
         window.addEventListener('resize', resizeCanvas);
     }
 
+
+    //Objects ---------------------------------------------
+    function sphere(vertexPositionBuffer, vertexIndexBuffer, vertexColorBuffer){
+    	this.vertexPositionBuffer = vertexPositionBuffer;
+        this.vertexIndexBuffer = vertexIndexBuffer;
+        this.vertexColorBuffer = vertexColorBuffer;
+    }
+    //End of Objects=======================================
 
 </script>
 
