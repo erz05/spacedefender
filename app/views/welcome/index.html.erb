@@ -219,13 +219,105 @@
         lastMouseY = newY;
     }
 
-    var sizes =[.5, .05, .1, .09, .08, .3, .2, .1, .1, .05];
+    var spaceCrafts = [];
+    function handleDoubleClick(event) {
+
+        var halfWidth = canvas.width/2;
+        var halfHeight = canvas.height/2;
+        var posx = event.clientX;
+        posx = posx - halfWidth;
+
+        var posy = event.clientY;
+        posy = posy - halfHeight;
+
+        console.log("posx = "+posx);
+        console.log("zoom = "+zoom);
+
+        spaceCrafts.push(initCraft(posx/30, -posy/30, 0));
+    }
+
+    function initCraft(posx, posy, posz) {
+        var vertexPositionBuffer;
+        var vertexIndexBuffer;
+        var vertexColorBuffer;
+        
+        var latitudeBands = 20;
+        var longitudeBands = 20;
+        var radius = .1;
+
+        var vertexPositionData = [];
+        var colors = [];
+
+        for (var latNumber=0; latNumber <= latitudeBands; latNumber++) {
+            var theta = latNumber * Math.PI / latitudeBands;
+            var sinTheta = Math.sin(theta);
+            var cosTheta = Math.cos(theta);
+
+            for (var longNumber=0; longNumber <= longitudeBands; longNumber++) {
+                var phi = longNumber * 2 * Math.PI / longitudeBands;
+                var sinPhi = Math.sin(phi);
+                var cosPhi = Math.cos(phi);
+
+                var x = cosPhi * sinTheta;
+                var y = cosTheta;
+                var z = sinPhi * sinTheta;
+                var u = 1 - (longNumber / longitudeBands);
+                var v = 1 - (latNumber / latitudeBands);
+
+                vertexPositionData.push(radius * x);
+                vertexPositionData.push(radius * y);
+                vertexPositionData.push(radius * z);
+
+                colors.push(1);
+                colors.push(0);
+                colors.push(0);
+                colors.push(1);
+            }
+        }
+
+        var indexData = [];
+        for (var latNumber=0; latNumber < latitudeBands; latNumber++) {
+            for (var longNumber=0; longNumber < longitudeBands; longNumber++) {
+                var first = (latNumber * (longitudeBands + 1)) + longNumber;
+                var second = first + longitudeBands + 1;
+                indexData.push(first);
+                indexData.push(second);
+                indexData.push(first + 1);
+
+                indexData.push(second);
+                indexData.push(second + 1);
+                indexData.push(first + 1);
+            }
+        }
+
+        vertexPositionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexPositionData), gl.STATIC_DRAW);
+        vertexPositionBuffer.itemSize = 3;
+        vertexPositionBuffer.numItems = vertexPositionData.length / 3;
+
+        vertexColorBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexColorBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
+        vertexColorBuffer.itemSize = 4;
+        vertexColorBuffer.numItems = colors.length / 4;
+
+        vertexIndexBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vertexIndexBuffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indexData), gl.STATIC_DRAW);
+        vertexIndexBuffer.itemSize = 1;
+        vertexIndexBuffer.numItems = indexData.length;
+
+        return new craft(posx, posy, posz, vertexPositionBuffer, vertexIndexBuffer, vertexColorBuffer);
+    }
+
+    var planetSizes =[.5, .05, .1, .09, .08, .3, .2, .1, .1, .05];
     var radiuses =[1, 2, 3, 4, 5, 6, 7, 8, 9];
     var c1 = [1, .7, .3, 0, 1, 1, .5, 1, 0, 0];
     var c2 = [1, .2, .5, .7, 0, 0.64705882352, 0, 0, 0, 1];
     var c3 = [0, 0, .3, 1, 0, 0, .8, 1, 1, 1];
-    
-    function initSphere(i) {
+
+    function initSphere(i, sizes) {
         var vertexPositionBuffer;
         var vertexIndexBuffer;
         var vertexColorBuffer;
@@ -310,8 +402,8 @@
         for(var i=0; i<numSegments; i++){
             var theta = 2.0 * 3.1415926 * i / numSegments;
             var x = radius * Math.cos(theta);
-            var z = radius * Math.sin(theta);
-            var y = 0;
+            var z = 0;
+            var y = radius * Math.sin(theta);
 
             positionData.push(x);
             positionData.push(y);
@@ -344,14 +436,15 @@
         gl.bindBuffer(gl.ARRAY_BUFFER, starPositionBuffer);
         var vertices = [];
         var colors = [];
-        for(var i=0; i<400; i++){
+        for(var i=0; i<100; i++){
             vertices.push((Math.random()*60)-30);
             vertices.push((Math.random()*60)-30);
             vertices.push(-30);
-            colors.push(1);
-            colors.push(1);
-            colors.push(1);
-            colors.push(1);
+
+            colors.push(Math.random());
+            colors.push(Math.random());
+            colors.push(Math.random());
+            colors.push(0);
         }
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
         starPositionBuffer.itemSize = 3;
@@ -373,7 +466,7 @@
         }
 
         for(var i=0; i<10; i++){
-            planets.push(initSphere(i));
+            planets.push(initSphere(i, planetSizes));
         }
 
         initStars();
@@ -388,13 +481,31 @@
     var rZ = 0;
     var rAngle = 0;
 
-    var rotationSpeeed = [1,2,4,3,6,10,9,5,8,7];
+    function drawCraft(i){
+        var craft = spaceCrafts[i];
+        mvPushMatrix();
+        mat4.translate(mvMatrix, [craft.posx, craft.posy, 0.0]);
+        var vertexPositionBuffer = craft.vertexPositionBuffer;
+        var vertexIndexBuffer = craft.vertexIndexBuffer;
+        var vertexColorBuffer = craft.vertexColorBuffer;
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexPositionBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, vertexPositionBuffer.itemSize, gl.FLOAT, false, 0, 0);
 
+        gl.bindBuffer(gl.ARRAY_BUFFER, vertexColorBuffer);
+        gl.vertexAttribPointer(shaderProgram.vertexColorAttribute, vertexColorBuffer.itemSize, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, vertexIndexBuffer);
+        setMatrixUniforms();
+        gl.drawElements(gl.LINES, vertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+        mvPopMatrix();
+    }
+
+    var rotationSpeeed = [1,2,4,3,6,10,9,5,8,7];
     var locations =[0, -1, -2, -3, -4, -5, -6, -7, -8, -9];
     function drawSphere(i){
         mvPushMatrix();
-        mat4.rotate(mvMatrix, degToRad(rAngle/rotationSpeeed[i]), [0,1,0]);
-        mat4.translate(mvMatrix, [locations[i], 0.0, 0.0]);
+        mat4.rotate(mvMatrix, degToRad(rAngle/rotationSpeeed[i]), [0,0,1]);
+        mat4.translate(mvMatrix, [locations[i],0.0, 0.0]);
         var planet = planets[i];
         var vertexPositionBuffer = planet.vertexPositionBuffer;
         var vertexIndexBuffer = planet.vertexIndexBuffer;
@@ -460,6 +571,11 @@
             drawCircle(i);
         }
 
+        for(var i=0; i<spaceCrafts.length; i++){
+            drawCraft(i);
+        }
+
+        //DRAW STARS!!! ------------------------------------
         drawStars();
 
         mvPushMatrix();
@@ -488,6 +604,7 @@
         mat4.translate(mvMatrix, [0,0,60]);
         drawStars();
         mvPopMatrix();
+        //DRAW STARS END ===================================
     }
 
     var lastTime = 0;
@@ -548,6 +665,8 @@
         canvas.onmousedown = handleMouseDown;
         document.onmouseup = handleMouseUp;
         document.onmousemove = handleMouseMove;
+
+        document.ondblclick = handleDoubleClick;
 
         canvas.addEventListener("touchstart", function(e){
         	e.preventDefault(); 
@@ -632,6 +751,15 @@
     	this.vertexPositionBuffer = vertexPositionBuffer;
         this.vertexColorBuffer = vertexColorBuffer;
     }
+
+    function craft(posx, posy, posz, vertexPositionBuffer, vertexIndexBuffer, vertexColorBuffer){
+        this.posx = posx;
+        this.posy = posy;
+        this.posz = posz;
+        this.vertexPositionBuffer = vertexPositionBuffer;
+        this.vertexIndexBuffer = vertexIndexBuffer;
+        this.vertexColorBuffer = vertexColorBuffer;
+    }
     //End of Objects=======================================
 
 </script>
@@ -676,7 +804,6 @@
 		width: 200px;
 	    height: 100%;
 	    z-index: 10;
-	    border: 5px groove #0066FF;
 	}
 
 	#drawerButton {
@@ -702,10 +829,10 @@
     <body onload="webGLStart();">
     	<div id="container">
 		    <div id="navi"><canvas id="canvas"></canvas></div>
-		    <div id="drawer">
+		    <div id="drawer" style="display: none;">
 		    	<h2 id="score">Score: 99999</h2>
 		    </div>
-		    <button id="drawerButton">Controls</button>
+		    <button id="drawerButton" >Controls</button>
 		</div>
     </body>
 </html>
