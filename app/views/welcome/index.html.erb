@@ -302,8 +302,8 @@
                 var cosPhi = Math.cos(phi);
 
                 var x = cosPhi * sinTheta;
-                var y = cosTheta;
-                var z = sinPhi * sinTheta;
+                var z = cosTheta;
+                var y = sinPhi * sinTheta;
                 var u = 1 - (longNumber / longitudeBands);
                 var v = 1 - (latNumber / latitudeBands);
 
@@ -406,7 +406,7 @@
             colors.push(Math.random());
             colors.push(Math.random());
             colors.push(Math.random());
-            colors.push(0);
+            colors.push(Math.random());
         }
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
         starPositionBuffer.itemSize = 3;
@@ -483,6 +483,10 @@
         setMatrixUniforms();
         gl.drawElements(gl.LINES, vertexIndexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
         mvPopMatrix();
+
+        //if(i==3){
+        //    $('#earthPositionText').text("spaceDefender:~$ Earth Position x = "+degToRad(rAngle)+", y = "+degToRad(rAngle));
+        //}
     }
 
     function drawCircle(i) {
@@ -761,26 +765,26 @@
 	}
 
 	#drawer {
-		background-color:#333333;
-		opacity:0.6;
-	    filter:alpha(opacity=60);
-		width: 200px;
+		background-color:#222222;
+		opacity:0.8;
+	    filter:alpha(opacity=80);
+		width: 250px;
 	    height: 100%;
 	    z-index: 10;
+        color: #00FF00;
+        padding: 10px;
+        padding-top: 50px;
+        -moz-user-select: none; 
+        -webkit-user-select: none; 
+        -ms-user-select:none; 
+        user-select:none;
 	}
 
 	#drawerButton {
+        background-color: #444444;
+        color: #00FF00;
+        padding: 10px;
 		z-index: 10;
-		-moz-user-select: none; 
-		-webkit-user-select: none; 
-		-ms-user-select:none; 
-		user-select:none;
-	}
-
-	#score {
-		font-family:"Times New Roman",Georgia,Serif;
-		color: white;
-		padding: 10px;
 		-moz-user-select: none; 
 		-webkit-user-select: none; 
 		-ms-user-select:none; 
@@ -793,7 +797,12 @@
     	<div id="container">
 		    <div id="navi"><canvas id="canvas"></canvas></div>
 		    <div id="drawer" style="display: none;">
-		    	<h2 id="score">Score: 99999</h2>
+		    	<p id="score">spaceDefender:~$ Score: 99999</p>
+                <p>spaceDefender:~$ asdfasdfasdf asdf asdf asdfasdf asdf</p>
+                <p>spaceDefender:~$ asdf asdf asdf</p>
+                <p>spaceDefender:~$ asdfasdf asdfasdf asdf asdfasdf</p>
+                <p>spaceDefender:~$ asdf asdf asdf asdfasdfasdfasdf asdf asdf</p>
+                <p id="earthPositionText">spaceDefender:~$ Earth Position x = 0, y = 0</p>
 		    </div>
 		    <button id="drawerButton" >Controls</button>
 		</div>
