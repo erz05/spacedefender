@@ -438,9 +438,6 @@
         return degrees * Math.PI / 180;
     }
 
-    var rS = 0;
-    var rT = -2;
-    var rZ = 0;
     var rAngle = 0;
 
     function drawCraft(i){
@@ -463,12 +460,13 @@
         mvPopMatrix();
     }
 
-    var rotationSpeeed = [1,2,4,3,6,10,9,5,8,7];
-    var locations =[0, -1, -2, -3, -4, -5, -6, -7, -8, -9];
+    var rotationSpeeed = [5,7,9,8,11,15,14,9,13,12];
+    var locationsX = [0, 0, -2, 3, 0, -5, 0, -7, 8, 0];
+    var locationsY = [0, 1, 0, 0, 4, 0, -6, 0, 0, -9]
     function drawSphere(i){
         mvPushMatrix();
         mat4.rotate(mvMatrix, degToRad(rAngle/rotationSpeeed[i]), [0,0,1]);
-        mat4.translate(mvMatrix, [locations[i],0.0, 0.0]);
+        mat4.translate(mvMatrix, [locationsX[i],locationsY[i], 0.0]);
         var planet = planets[i];
         var vertexPositionBuffer = planet.vertexPositionBuffer;
         var vertexIndexBuffer = planet.vertexIndexBuffer;
@@ -575,36 +573,15 @@
     }
 
     var lastTime = 0;
-    var speed = .1;
-    var speed2 = .1;
 
     function animate() {
         var timeNow = new Date().getTime();
         if (lastTime != 0) {
             var elapsed = timeNow - lastTime;
 
-            rS += (90 * elapsed) / 1000.0;
-            rAngle += .05 * elapsed;
+            rAngle += .01 * elapsed;
         }
         lastTime = timeNow;
-
-        rT += speed;
-
-        if(rT > 2){
-            speed = -speed;
-        }
-
-        if(rT < -2){
-            speed = -speed;
-        }
-
-        rZ += speed2;
-        if(rZ > 2){
-            speed2 = -speed2;
-        }
-        if(rZ < -2){
-            speed2 = -speed2;
-        }
     }
 
     function tick() {
@@ -720,6 +697,24 @@
     }
 
     function craft(posx, posy, posz, vertexPositionBuffer, vertexIndexBuffer, vertexColorBuffer){
+        this.posx = posx;
+        this.posy = posy;
+        this.posz = posz;
+        this.vertexPositionBuffer = vertexPositionBuffer;
+        this.vertexIndexBuffer = vertexIndexBuffer;
+        this.vertexColorBuffer = vertexColorBuffer;
+    }
+
+    function alien(posx, posy, posz, vertexPositionBuffer, vertexIndexBuffer, vertexColorBuffer){
+        this.posx = posx;
+        this.posy = posy;
+        this.posz = posz;
+        this.vertexPositionBuffer = vertexPositionBuffer;
+        this.vertexIndexBuffer = vertexIndexBuffer;
+        this.vertexColorBuffer = vertexColorBuffer;
+    }
+
+    function bullet(posx, posy, posz, vertexPositionBuffer, vertexIndexBuffer, vertexColorBuffer){
         this.posx = posx;
         this.posy = posy;
         this.posz = posz;
